@@ -18,14 +18,21 @@ package org.springframework.data.redis.connection;
 import org.springframework.lang.Nullable;
 
 /**
- * Interface for the commands supported by Redis.
+ * Redis支持的命令的接口：
+ *
+ * 操作key相关的命令：
+ * 		RedisKeyCommands：
+ *
+ * Redis 五种数据结构：
+ * 		RedisStringCommands、RedisListCommands、RedisSetCommands、RedisZSetCommands、RedisHashCommands
  *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-public interface RedisCommands extends RedisKeyCommands, RedisStringCommands, RedisListCommands, RedisSetCommands,
-		RedisZSetCommands, RedisHashCommands, RedisTxCommands, RedisPubSubCommands, RedisConnectionCommands,
+public interface RedisCommands extends RedisKeyCommands,
+		RedisStringCommands, RedisListCommands, RedisSetCommands, RedisZSetCommands, RedisHashCommands,
+		RedisTxCommands, RedisPubSubCommands, RedisConnectionCommands,
 		RedisServerCommands, RedisStreamCommands, RedisScriptingCommands, RedisGeoCommands, RedisHyperLogLogCommands {
 
 	/**

@@ -48,6 +48,18 @@ public interface RedisConfiguration {
 	default Integer getDatabaseOrElse(Supplier<Integer> other) {
 		return getDatabaseOrElse(this, other);
 	}
+	/**
+	 * @param configuration can be {@literal null}.
+	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
+	 *          {@link #isDatabaseIndexAware(RedisConfiguration) database aware}.
+	 * @return never {@literal null}.
+	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
+	 */
+	static Integer getDatabaseOrElse(@Nullable RedisConfiguration configuration, Supplier<Integer> other) {
+
+		Assert.notNull(other, "Other must not be null!");
+		return isDatabaseIndexAware(configuration) ? ((WithDatabaseIndex) configuration).getDatabase() : other.get();
+	}
 
 	/**
 	 * Get the configured {@link RedisPassword} if the current {@link RedisConfiguration} is
@@ -62,6 +74,19 @@ public interface RedisConfiguration {
 	default RedisPassword getPasswordOrElse(Supplier<RedisPassword> other) {
 		return getPasswordOrElse(this, other);
 	}
+	/**
+	 * @param configuration can be {@literal null}.
+	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
+	 *          {@link #isPasswordAware(RedisConfiguration) password aware}.
+	 * @return never {@literal null}.
+	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
+	 */
+	static RedisPassword getPasswordOrElse(@Nullable RedisConfiguration configuration, Supplier<RedisPassword> other) {
+
+		Assert.notNull(other, "Other must not be null!");
+		return isPasswordAware(configuration) ? ((WithPassword) configuration).getPassword() : other.get();
+	}
+
 
 	/**
 	 * @param configuration can be {@literal null}.
@@ -70,13 +95,20 @@ public interface RedisConfiguration {
 	static boolean isPasswordAware(@Nullable RedisConfiguration configuration) {
 		return configuration instanceof WithPassword;
 	}
-
 	/**
 	 * @param configuration can be {@literal null}.
 	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link WithDatabaseIndex}.
 	 */
 	static boolean isDatabaseIndexAware(@Nullable RedisConfiguration configuration) {
 		return configuration instanceof WithDatabaseIndex;
+	}
+	/**
+	 * @param configuration can be {@literal null}.
+	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link WithHostAndPort}.
+	 * @since 2.1.6
+	 */
+	static boolean isHostAndPortAware(@Nullable RedisConfiguration configuration) {
+		return configuration instanceof WithHostAndPort;
 	}
 
 	/**
@@ -87,14 +119,7 @@ public interface RedisConfiguration {
 		return configuration instanceof SentinelConfiguration;
 	}
 
-	/**
-	 * @param configuration can be {@literal null}.
-	 * @return {@code true} if given {@link RedisConfiguration} is instance of {@link WithHostAndPort}.
-	 * @since 2.1.6
-	 */
-	static boolean isHostAndPortAware(@Nullable RedisConfiguration configuration) {
-		return configuration instanceof WithHostAndPort;
-	}
+
 
 	/**
 	 * @param configuration can be {@literal null}.
@@ -120,31 +145,7 @@ public interface RedisConfiguration {
 		return configuration instanceof DomainSocketConfiguration;
 	}
 
-	/**
-	 * @param configuration can be {@literal null}.
-	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
-	 *          {@link #isDatabaseIndexAware(RedisConfiguration) database aware}.
-	 * @return never {@literal null}.
-	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
-	 */
-	static Integer getDatabaseOrElse(@Nullable RedisConfiguration configuration, Supplier<Integer> other) {
 
-		Assert.notNull(other, "Other must not be null!");
-		return isDatabaseIndexAware(configuration) ? ((WithDatabaseIndex) configuration).getDatabase() : other.get();
-	}
-
-	/**
-	 * @param configuration can be {@literal null}.
-	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
-	 *          {@link #isPasswordAware(RedisConfiguration) password aware}.
-	 * @return never {@literal null}.
-	 * @throws IllegalArgumentException if {@code other} is {@literal null}.
-	 */
-	static RedisPassword getPasswordOrElse(@Nullable RedisConfiguration configuration, Supplier<RedisPassword> other) {
-
-		Assert.notNull(other, "Other must not be null!");
-		return isPasswordAware(configuration) ? ((WithPassword) configuration).getPassword() : other.get();
-	}
 
 	/**
 	 * @param configuration can be {@literal null}.
@@ -159,7 +160,6 @@ public interface RedisConfiguration {
 		Assert.notNull(other, "Other must not be null!");
 		return isHostAndPortAware(configuration) ? ((WithHostAndPort) configuration).getPort() : other.getAsInt();
 	}
-
 	/**
 	 * @param configuration can be {@literal null}.
 	 * @param other a {@code Supplier} whose result is returned if given {@link RedisConfiguration} is not
@@ -174,8 +174,12 @@ public interface RedisConfiguration {
 		return isHostAndPortAware(configuration) ? ((WithHostAndPort) configuration).getHostName() : other.get();
 	}
 
+
+
+
+
 	/**
-	 * {@link RedisConfiguration} part suitable for configurations that may use authentication when connecting.
+	 * {@link RedisConfiguration}部分适用于在连接时可能使用身份验证的配置。
 	 *
 	 * @author Christoph Strobl
 	 * @since 2.1
@@ -214,9 +218,8 @@ public interface RedisConfiguration {
 		 */
 		RedisPassword getPassword();
 	}
-
 	/**
-	 * {@link RedisConfiguration} part suitable for configurations that use a specific database.
+	 * {@link RedisConfiguration}部分适用于使用特定数据库的配置。
 	 *
 	 * @author Christoph Strobl
 	 * @since 2.1
@@ -237,9 +240,8 @@ public interface RedisConfiguration {
 		 */
 		int getDatabase();
 	}
-
 	/**
-	 * {@link RedisConfiguration} part suitable for configurations that use host/port combinations for connecting.
+	 * {@link RedisConfiguration}部分适用于使用主机/端口组合进行连接的配置。
 	 *
 	 * @author Christoph Strobl
 	 * @since 2.1
@@ -272,7 +274,6 @@ public interface RedisConfiguration {
 		 */
 		int getPort();
 	}
-
 	/**
 	 * {@link RedisConfiguration} part suitable for configurations that use native domain sockets for connecting.
 	 *
@@ -295,7 +296,6 @@ public interface RedisConfiguration {
 		 */
 		String getSocket();
 	}
-
 	/**
 	 * Configuration interface suitable for Redis Sentinel environments.
 	 *
@@ -388,7 +388,6 @@ public interface RedisConfiguration {
 		 */
 		RedisPassword getSentinelPassword();
 	}
-
 	/**
 	 * Configuration interface suitable for Redis cluster environments.
 	 *
@@ -410,7 +409,6 @@ public interface RedisConfiguration {
 		@Nullable
 		Integer getMaxRedirects();
 	}
-
 	/**
 	 * Configuration interface suitable for Redis master/slave environments with fixed hosts. <br/>
 	 * Redis is undergoing a nomenclature change where the term replica is used synonymously to slave.
@@ -426,7 +424,6 @@ public interface RedisConfiguration {
 		 */
 		List<RedisStandaloneConfiguration> getNodes();
 	}
-
 	/**
 	 * Configuration interface suitable for single node redis connections using local unix domain socket.
 	 *
@@ -434,6 +431,7 @@ public interface RedisConfiguration {
 	 * @since 2.1
 	 */
 	interface DomainSocketConfiguration extends WithDomainSocket, WithDatabaseIndex, WithPassword {
-
 	}
+
+
 }

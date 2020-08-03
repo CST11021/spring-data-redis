@@ -38,8 +38,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.Assert;
 
 /**
- * Helper class featuring {@link RedisConnection} handling, allowing for reuse of instances within
- * 'transactions'/scopes.
+ * 具有{@link RedisConnection}处理功能的Helper类，允许在“事务”或作用域内重用实例。
  *
  * @author Costin Leau
  * @author Christoph Strobl
@@ -59,7 +58,6 @@ public abstract class RedisConnectionUtils {
 	public static RedisConnection bindConnection(RedisConnectionFactory factory) {
 		return bindConnection(factory, false);
 	}
-
 	/**
 	 * Binds a new Redis connection (from the given factory) to the current thread, if none is already bound and enables
 	 * transaction support if {@code transactionSupport} is set to {@literal true}.
@@ -71,7 +69,6 @@ public abstract class RedisConnectionUtils {
 	public static RedisConnection bindConnection(RedisConnectionFactory factory, boolean transactionSupport) {
 		return doGetConnection(factory, true, true, transactionSupport);
 	}
-
 	/**
 	 * Gets a Redis connection from the given factory. Is aware of and will return any existing corresponding connections
 	 * bound to the current thread, for example when using a transaction manager. Will always create a new connection
@@ -83,7 +80,6 @@ public abstract class RedisConnectionUtils {
 	public static RedisConnection getConnection(RedisConnectionFactory factory) {
 		return getConnection(factory, false);
 	}
-
 	/**
 	 * Gets a Redis connection from the given factory. Is aware of and will return any existing corresponding connections
 	 * bound to the current thread, for example when using a transaction manager. Will always create a new connection
@@ -96,7 +92,7 @@ public abstract class RedisConnectionUtils {
 	public static RedisConnection getConnection(RedisConnectionFactory factory, boolean transactionSupport) {
 		return doGetConnection(factory, true, false, transactionSupport);
 	}
-
+	// 核心方法：以上四个方法通过该方法获取RedisConnection实例
 	/**
 	 * Gets a Redis connection. Is aware of and will return any existing corresponding connections bound to the current
 	 * thread, for example when using a transaction manager. Will create a new Connection otherwise, if
@@ -109,13 +105,11 @@ public abstract class RedisConnectionUtils {
 	 * @param transactionSupport whether transaction support is enabled.
 	 * @return an active Redis connection.
 	 */
-	public static RedisConnection doGetConnection(RedisConnectionFactory factory, boolean allowCreate, boolean bind,
-			boolean transactionSupport) {
+	public static RedisConnection doGetConnection(RedisConnectionFactory factory, boolean allowCreate, boolean bind, boolean transactionSupport) {
 
 		Assert.notNull(factory, "No RedisConnectionFactory specified");
 
 		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
-
 		if (connHolder != null) {
 			if (transactionSupport) {
 				potentiallyRegisterTransactionSynchronisation(connHolder, factory);
@@ -153,39 +147,13 @@ public abstract class RedisConnectionUtils {
 		return conn;
 	}
 
-	private static void potentiallyRegisterTransactionSynchronisation(RedisConnectionHolder connHolder,
-			final RedisConnectionFactory factory) {
 
-		if (isActualNonReadonlyTransactionActive()) {
 
-			if (!connHolder.isTransactionSyncronisationActive()) {
-				connHolder.setTransactionSyncronisationActive(true);
 
-				RedisConnection conn = connHolder.getConnection();
-				conn.multi();
 
-				TransactionSynchronizationManager
-						.registerSynchronization(new RedisTransactionSynchronizer(connHolder, conn, factory));
-			}
-		}
-	}
-
-	private static boolean isActualNonReadonlyTransactionActive() {
-		return TransactionSynchronizationManager.isActualTransactionActive()
-				&& !TransactionSynchronizationManager.isCurrentTransactionReadOnly();
-	}
-
-	private static RedisConnection createConnectionProxy(RedisConnection connection, RedisConnectionFactory factory) {
-
-		ProxyFactory proxyFactory = new ProxyFactory(connection);
-		proxyFactory.addAdvice(new ConnectionSplittingInterceptor(factory));
-
-		return RedisConnection.class.cast(proxyFactory.getProxy());
-	}
 
 	/**
-	 * Closes the given connection, created via the given factory if not managed externally (i.e. not bound to the
-	 * thread).
+	 * Closes the given connection, created via the given factory if not managed externally (i.e. not bound to the thread).
 	 *
 	 * @param conn the Redis connection to close.
 	 * @param factory the Redis factory that the connection was created with.
@@ -195,7 +163,6 @@ public abstract class RedisConnectionUtils {
 	public static void releaseConnection(@Nullable RedisConnection conn, RedisConnectionFactory factory) {
 		releaseConnection(conn, factory, false);
 	}
-
 	/**
 	 * Closes the given connection, created via the given factory if not managed externally (i.e. not bound to the
 	 * thread).
@@ -205,15 +172,13 @@ public abstract class RedisConnectionUtils {
 	 * @param transactionSupport whether transaction support is enabled.
 	 * @since 2.1.9
 	 */
-	public static void releaseConnection(@Nullable RedisConnection conn, RedisConnectionFactory factory,
-			boolean transactionSupport) {
+	public static void releaseConnection(@Nullable RedisConnection conn, RedisConnectionFactory factory, boolean transactionSupport) {
 
 		if (conn == null) {
 			return;
 		}
 
 		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
-
 		if (connHolder != null && connHolder.isTransactionSyncronisationActive()) {
 			if (log.isDebugEnabled()) {
 				log.debug("Redis Connection will be closed when transaction finished.");
@@ -265,6 +230,22 @@ public abstract class RedisConnectionUtils {
 			doCloseConnection(connHolder.getConnection());
 		}
 	}
+	private static void doCloseConnection(RedisConnection connection) {
+
+		if (log.isDebugEnabled()) {
+			log.debug("Closing Redis Connection.");
+		}
+
+		try {
+			connection.close();
+		} catch (DataAccessException ex) {
+			log.debug("Could not close Redis Connection", ex);
+		} catch (Throwable ex) {
+			log.debug("Unexpected exception on closing Redis Connection", ex);
+		}
+	}
+
+
 
 	/**
 	 * Return whether the given Redis connection is transactional, that is, bound to the current thread by Spring's
@@ -283,21 +264,35 @@ public abstract class RedisConnectionUtils {
 
 		return (connHolder != null && conn == connHolder.getConnection());
 	}
+	private static void potentiallyRegisterTransactionSynchronisation(RedisConnectionHolder connHolder, final RedisConnectionFactory factory) {
 
-	private static void doCloseConnection(RedisConnection connection) {
+		if (isActualNonReadonlyTransactionActive()) {
 
-		if (log.isDebugEnabled()) {
-			log.debug("Closing Redis Connection.");
-		}
+			if (!connHolder.isTransactionSyncronisationActive()) {
+				connHolder.setTransactionSyncronisationActive(true);
 
-		try {
-			connection.close();
-		} catch (DataAccessException ex) {
-			log.debug("Could not close Redis Connection", ex);
-		} catch (Throwable ex) {
-			log.debug("Unexpected exception on closing Redis Connection", ex);
+				RedisConnection conn = connHolder.getConnection();
+				conn.multi();
+
+				TransactionSynchronizationManager
+						.registerSynchronization(new RedisTransactionSynchronizer(connHolder, conn, factory));
+			}
 		}
 	}
+	private static boolean isActualNonReadonlyTransactionActive() {
+		return TransactionSynchronizationManager.isActualTransactionActive()
+				&& !TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+	}
+	private static RedisConnection createConnectionProxy(RedisConnection connection, RedisConnectionFactory factory) {
+
+		ProxyFactory proxyFactory = new ProxyFactory(connection);
+		proxyFactory.addAdvice(new ConnectionSplittingInterceptor(factory));
+
+		return RedisConnection.class.cast(proxyFactory.getProxy());
+	}
+
+
+
 
 	/**
 	 * A {@link TransactionSynchronizationAdapter} that makes sure that the associated RedisConnection is released after
@@ -345,8 +340,7 @@ public abstract class RedisConnectionUtils {
 	 * @author Christoph Strobl
 	 * @since 1.3
 	 */
-	static class ConnectionSplittingInterceptor
-			implements MethodInterceptor, org.springframework.cglib.proxy.MethodInterceptor {
+	static class ConnectionSplittingInterceptor implements MethodInterceptor, org.springframework.cglib.proxy.MethodInterceptor {
 
 		private final RedisConnectionFactory factory;
 

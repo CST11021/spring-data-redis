@@ -21,6 +21,8 @@ import org.springframework.data.redis.connection.RedisConfiguration.WithPassword
 import org.springframework.util.Assert;
 
 /**
+ * Redis数据源配置类：
+ *
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
  * to a single node <a href="https://redis.io/">Redis</a> installation.
  *
@@ -28,8 +30,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 2.0
  */
-public class RedisStandaloneConfiguration
-		implements RedisConfiguration, WithHostAndPort, WithPassword, WithDatabaseIndex {
+public class RedisStandaloneConfiguration implements RedisConfiguration, WithHostAndPort, WithPassword, WithDatabaseIndex {
 
 	private static final String DEFAULT_HOST = "localhost";
 	private static final int DEFAULT_PORT = 6379;
@@ -39,11 +40,11 @@ public class RedisStandaloneConfiguration
 	private int database;
 	private RedisPassword password = RedisPassword.none();
 
+
 	/**
 	 * Create a new default {@link RedisStandaloneConfiguration}.
 	 */
 	public RedisStandaloneConfiguration() {}
-
 	/**
 	 * Create a new {@link RedisStandaloneConfiguration} given {@code hostName}.
 	 *
@@ -52,7 +53,6 @@ public class RedisStandaloneConfiguration
 	public RedisStandaloneConfiguration(String hostName) {
 		this(hostName, DEFAULT_PORT);
 	}
-
 	/**
 	 * Create a new {@link RedisStandaloneConfiguration} given {@code hostName} and {@code port}.
 	 *
@@ -69,54 +69,40 @@ public class RedisStandaloneConfiguration
 		this.port = port;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort#getHostName()
-	 */
+
+
+
 	@Override
 	public String getHostName() {
 		return hostName;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort#getPort()
-	 */
-	@Override
-	public int getPort() {
-		return port;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort#setHostName(java.lang.String)
-	 */
 	@Override
 	public void setHostName(String hostName) {
 		this.hostName = hostName;
 	}
+	@Override
+	public RedisPassword getPassword() {
+		return password;
+	}
+	@Override
+	public void setPassword(RedisPassword password) {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithHostAndPort#setPort(int)
-	 */
+		Assert.notNull(password, "RedisPassword must not be null!");
+
+		this.password = password;
+	}
+	@Override
+	public int getPort() {
+		return port;
+	}
+	@Override
 	public void setPort(int port) {
 		this.port = port;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#getDatabase()
-	 */
 	@Override
 	public int getDatabase() {
 		return database;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithDatabaseIndex#setDatabase(int)
-	 */
 	@Override
 	public void setDatabase(int index) {
 
@@ -125,24 +111,4 @@ public class RedisStandaloneConfiguration
 		this.database = index;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#getPassword()
-	 */
-	@Override
-	public RedisPassword getPassword() {
-		return password;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConfiguration.WithPassword#setPassword(org.springframework.data.redis.connection.RedisPassword)
-	 */
-	@Override
-	public void setPassword(RedisPassword password) {
-
-		Assert.notNull(password, "RedisPassword must not be null!");
-
-		this.password = password;
-	}
 }

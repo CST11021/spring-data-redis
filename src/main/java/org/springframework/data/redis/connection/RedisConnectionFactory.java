@@ -27,14 +27,14 @@ import org.springframework.dao.support.PersistenceExceptionTranslator;
 public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 
 	/**
-	 * Provides a suitable connection for interacting with Redis.
+	 * 创建一个RedisConnection
 	 *
 	 * @return connection for interacting with Redis.
 	 */
 	RedisConnection getConnection();
 
 	/**
-	 * Provides a suitable connection for interacting with Redis Cluster.
+	 * 创建一个RedisClusterConnection
 	 *
 	 * @return
 	 * @since 1.7
@@ -42,8 +42,8 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 	RedisClusterConnection getClusterConnection();
 
 	/**
-	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
-	 * {@link RedisConnection#closePipeline()} and {RedisConnection#exec()} will be of the type returned by the underlying
+	 * 指定是否将 pipelined result 转换为预期的数据类型。
+	 * If false, results of {@link RedisConnection#closePipeline()} and {RedisConnection#exec()} will be of the type returned by the underlying
 	 * driver This method is mostly for backwards compatibility with 1.0. It is generally always a good idea to allow
 	 * results to be converted and deserialized. In fact, this is now the default behavior.
 	 *
@@ -52,7 +52,7 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 	boolean getConvertPipelineAndTxResults();
 
 	/**
-	 * Provides a suitable connection for interacting with Redis Sentinel.
+	 * Sentinel：哨兵，提供用于与Redis Sentinel交互的Connection
 	 *
 	 * @return connection for interacting with Redis Sentinel.
 	 * @since 1.4

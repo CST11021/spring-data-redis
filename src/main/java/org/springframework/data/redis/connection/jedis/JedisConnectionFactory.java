@@ -82,22 +82,24 @@ import org.springframework.util.CollectionUtils;
 public class JedisConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
 	private final static Log log = LogFactory.getLog(JedisConnectionFactory.class);
-	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
-			JedisConverters.exceptionConverter());
+
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(JedisConverters.exceptionConverter());
 
 	private final JedisClientConfiguration clientConfiguration;
 	private @Nullable JedisShardInfo shardInfo;
 	private boolean providedShardInfo = false;
+	/** Jedis对象池 */
 	private @Nullable Pool<Jedis> pool;
 	private boolean convertPipelineAndTxResults = true;
-	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost",
-			Protocol.DEFAULT_PORT);
+	/** Redis数据源配置类，例如：host、port、password等 */
+	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost", Protocol.DEFAULT_PORT);
 
-	private @Nullable RedisConfiguration configuration;
 
 	private @Nullable JedisCluster cluster;
+	private @Nullable RedisConfiguration configuration;
 	private @Nullable ClusterTopologyProvider topologyProvider;
 	private @Nullable ClusterCommandExecutor clusterCommandExecutor;
+
 
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance with default settings (default connection pooling, no
@@ -106,7 +108,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public JedisConnectionFactory() {
 		this(new MutableJedisClientConfiguration());
 	}
-
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance given {@link JedisClientConfiguration}.
 	 *
@@ -119,7 +120,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		this.clientConfiguration = clientConfig;
 	}
-
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance. Will override the other connection parameters passed
 	 * to the factory.
@@ -136,7 +136,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		this.shardInfo = shardInfo;
 		this.providedShardInfo = true;
 	}
-
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance using the given pool configuration.
 	 *
@@ -145,7 +144,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public JedisConnectionFactory(JedisPoolConfig poolConfig) {
 		this((RedisSentinelConfiguration) null, poolConfig);
 	}
-
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link JedisPoolConfig} applied to
 	 * {@link JedisSentinelPool}.
@@ -156,7 +154,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfig) {
 		this(sentinelConfig, new MutableJedisClientConfiguration());
 	}
-
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link JedisPoolConfig} applied to
 	 * {@link JedisSentinelPool}.
@@ -171,7 +168,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		this.clientConfiguration = MutableJedisClientConfiguration
 				.create(poolConfig != null ? poolConfig : new JedisPoolConfig());
 	}
-
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisClusterConfiguration} applied
 	 * to create a {@link JedisCluster}.
@@ -182,7 +178,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public JedisConnectionFactory(RedisClusterConfiguration clusterConfig) {
 		this(clusterConfig, new MutableJedisClientConfiguration());
 	}
-
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisClusterConfiguration} applied
 	 * to create a {@link JedisCluster}.
@@ -197,7 +192,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		this.configuration = clusterConfig;
 		this.clientConfiguration = MutableJedisClientConfiguration.create(poolConfig);
 	}
-
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisStandaloneConfiguration}.
 	 *
@@ -207,7 +201,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public JedisConnectionFactory(RedisStandaloneConfiguration standaloneConfig) {
 		this(standaloneConfig, new MutableJedisClientConfiguration());
 	}
-
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisStandaloneConfiguration} and
 	 * {@link JedisClientConfiguration}.
@@ -224,7 +217,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		this.standaloneConfig = standaloneConfig;
 	}
-
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisSentinelConfiguration} and
 	 * {@link JedisClientConfiguration}.
@@ -241,7 +233,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		this.configuration = sentinelConfig;
 	}
-
 	/**
 	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link RedisClusterConfiguration} and
 	 * {@link JedisClientConfiguration}.
@@ -258,6 +249,44 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		this.configuration = clusterConfig;
 	}
+
+
+
+	public void afterPropertiesSet() {
+
+		if (shardInfo == null && clientConfiguration instanceof MutableJedisClientConfiguration) {
+
+			providedShardInfo = false;
+			shardInfo = new JedisShardInfo(getHostName(), getPort(), isUseSsl(),
+					clientConfiguration.getSslSocketFactory().orElse(null),
+					clientConfiguration.getSslParameters().orElse(null),
+					clientConfiguration.getHostnameVerifier().orElse(null));
+
+			getRedisPassword().map(String::new).ifPresent(shardInfo::setPassword);
+
+			int readTimeout = getReadTimeout();
+
+			if (readTimeout > 0) {
+				shardInfo.setSoTimeout(readTimeout);
+			}
+
+			getMutableConfiguration().setShardInfo(shardInfo);
+		}
+
+		if (getUsePool() && !isRedisClusterAware()) {
+			this.pool = createPool();
+		}
+
+		if (isRedisClusterAware()) {
+
+			this.cluster = createCluster();
+			this.topologyProvider = createTopologyProvider(this.cluster);
+			this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
+					new JedisClusterConnection.JedisClusterNodeResourceProvider(this.cluster, this.topologyProvider),
+					EXCEPTION_TRANSLATION);
+		}
+	}
+
 
 	/**
 	 * Returns a Jedis instance to be used as a Redis connection. The instance can be newly created or retrieved from a
@@ -313,44 +342,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return connection;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-	 */
-	public void afterPropertiesSet() {
 
-		if (shardInfo == null && clientConfiguration instanceof MutableJedisClientConfiguration) {
-
-			providedShardInfo = false;
-			shardInfo = new JedisShardInfo(getHostName(), getPort(), isUseSsl(), //
-					clientConfiguration.getSslSocketFactory().orElse(null), //
-					clientConfiguration.getSslParameters().orElse(null), //
-					clientConfiguration.getHostnameVerifier().orElse(null));
-
-			getRedisPassword().map(String::new).ifPresent(shardInfo::setPassword);
-
-			int readTimeout = getReadTimeout();
-
-			if (readTimeout > 0) {
-				shardInfo.setSoTimeout(readTimeout);
-			}
-
-			getMutableConfiguration().setShardInfo(shardInfo);
-		}
-
-		if (getUsePool() && !isRedisClusterAware()) {
-			this.pool = createPool();
-		}
-
-		if (isRedisClusterAware()) {
-
-			this.cluster = createCluster();
-			this.topologyProvider = createTopologyProvider(this.cluster);
-			this.clusterCommandExecutor = new ClusterCommandExecutor(this.topologyProvider,
-					new JedisClusterConnection.JedisClusterNodeResourceProvider(this.cluster, this.topologyProvider),
-					EXCEPTION_TRANSLATION);
-		}
-	}
 
 	private Pool<Jedis> createPool() {
 
@@ -359,7 +351,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 		return createRedisPool();
 	}
-
 	/**
 	 * Creates {@link JedisSentinelPool}.
 	 *
@@ -373,7 +364,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return new JedisSentinelPool(config.getMaster().getName(), convertToJedisSentinelSet(config.getSentinels()),
 				poolConfig, getConnectTimeout(), getReadTimeout(), getPassword(), getDatabase(), getClientName());
 	}
-
 	/**
 	 * Creates {@link JedisPool}.
 	 *
@@ -388,11 +378,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 				clientConfiguration.getSslParameters().orElse(null), //
 				clientConfiguration.getHostnameVerifier().orElse(null));
 	}
-
 	private JedisCluster createCluster() {
 		return createCluster((RedisClusterConfiguration) this.configuration, getPoolConfig());
 	}
-
 	/**
 	 * Template method to create a {@link ClusterTopologyProvider} given {@link JedisCluster}. Creates
 	 * {@link JedisClusterTopologyProvider} by default.
@@ -405,7 +393,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	protected ClusterTopologyProvider createTopologyProvider(JedisCluster cluster) {
 		return new JedisClusterTopologyProvider(cluster);
 	}
-
 	/**
 	 * Creates {@link JedisCluster} for given {@link RedisClusterConfiguration} and {@link GenericObjectPoolConfig}.
 	 *
@@ -431,10 +418,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 				null);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.DisposableBean#destroy()
-	 */
+
+
+
 	public void destroy() {
 
 		if (getUsePool() && pool != null) {
@@ -463,10 +449,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getConnection()
-	 */
 	public RedisConnection getConnection() {
 
 		if (isRedisClusterAware()) {
@@ -480,10 +462,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return postProcessConnection(connection);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getClusterConnection()
-	 */
 	@Override
 	public RedisClusterConnection getClusterConnection() {
 
@@ -493,13 +471,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return new JedisClusterConnection(this.cluster, this.clusterCommandExecutor, this.topologyProvider);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.dao.support.PersistenceExceptionTranslator#translateExceptionIfPossible(java.lang.RuntimeException)
-	 */
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return EXCEPTION_TRANSLATION.translate(ex);
 	}
+
+
+
 
 	/**
 	 * Returns the Redis hostname.
@@ -509,7 +486,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public String getHostName() {
 		return standaloneConfig.getHostName();
 	}
-
 	/**
 	 * Sets the Redis hostname.
 	 *
@@ -520,7 +496,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public void setHostName(String hostName) {
 		standaloneConfig.setHostName(hostName);
 	}
-
 	/**
 	 * Returns whether to use SSL.
 	 *
@@ -530,7 +505,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public boolean isUseSsl() {
 		return clientConfiguration.isUseSsl();
 	}
-
 	/**
 	 * Sets whether to use SSL.
 	 *
@@ -543,7 +517,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public void setUseSsl(boolean useSsl) {
 		getMutableConfiguration().setUseSsl(useSsl);
 	}
-
 	/**
 	 * Returns the password used for authenticating with the Redis server.
 	 *
@@ -553,11 +526,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public String getPassword() {
 		return getRedisPassword().map(String::new).orElse(null);
 	}
-
 	private RedisPassword getRedisPassword() {
 		return RedisConfiguration.getPasswordOrElse(this.configuration, standaloneConfig::getPassword);
 	}
-
 	/**
 	 * Sets the password used for authenticating with the Redis server.
 	 *
@@ -576,7 +547,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		standaloneConfig.setPassword(RedisPassword.of(password));
 	}
-
 	/**
 	 * Returns the port used to connect to the Redis instance.
 	 *
@@ -585,7 +555,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public int getPort() {
 		return standaloneConfig.getPort();
 	}
-
 	/**
 	 * Sets the port used to connect to the Redis instance.
 	 *
@@ -596,6 +565,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public void setPort(int port) {
 		standaloneConfig.setPort(port);
 	}
+
+
+
+
 
 	/**
 	 * Returns the shardInfo.
@@ -608,7 +581,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public JedisShardInfo getShardInfo() {
 		return shardInfo;
 	}
-
 	/**
 	 * Sets the shard info for this factory.
 	 *
@@ -624,7 +596,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		this.providedShardInfo = true;
 		getMutableConfiguration().setShardInfo(shardInfo);
 	}
-
 	/**
 	 * Returns the timeout.
 	 *
@@ -633,7 +604,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public int getTimeout() {
 		return getReadTimeout();
 	}
-
 	/**
 	 * Sets the timeout.
 	 *
@@ -647,7 +617,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		getMutableConfiguration().setReadTimeout(Duration.ofMillis(timeout));
 		getMutableConfiguration().setConnectTimeout(Duration.ofMillis(timeout));
 	}
-
 	/**
 	 * Indicates the use of a connection pool.
 	 * <p />
@@ -665,7 +634,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		return clientConfiguration.isUsePooling();
 	}
-
 	/**
 	 * Turns on or off the use of connection pooling.
 	 *
@@ -684,7 +652,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		getMutableConfiguration().setUsePooling(usePool);
 	}
-
 	/**
 	 * Returns the poolConfig.
 	 *
@@ -694,7 +661,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public GenericObjectPoolConfig getPoolConfig() {
 		return clientConfiguration.getPoolConfig().orElse(null);
 	}
-
 	/**
 	 * Sets the pool configuration for this factory.
 	 *
@@ -706,7 +672,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public void setPoolConfig(JedisPoolConfig poolConfig) {
 		getMutableConfiguration().setPoolConfig(poolConfig);
 	}
-
 	/**
 	 * Returns the index of the database.
 	 *
@@ -715,7 +680,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public int getDatabase() {
 		return RedisConfiguration.getDatabaseOrElse(configuration, standaloneConfig::getDatabase);
 	}
-
 	/**
 	 * Sets the index of the database used by this connection factory. Default is 0.
 	 *
@@ -736,7 +700,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		standaloneConfig.setDatabase(index);
 	}
-
 	/**
 	 * Returns the client name.
 	 *
@@ -747,7 +710,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public String getClientName() {
 		return clientConfiguration.getClientName().orElse(null);
 	}
-
 	/**
 	 * Sets the client name used by this connection factory. Defaults to none which does not set a client name.
 	 *
@@ -761,6 +723,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		this.getMutableConfiguration().setClientName(clientName);
 	}
 
+
+
+
 	/**
 	 * @return the {@link JedisClientConfiguration}.
 	 * @since 2.0
@@ -768,7 +733,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public JedisClientConfiguration getClientConfiguration() {
 		return clientConfiguration;
 	}
-
 	/**
 	 * @return the {@link RedisStandaloneConfiguration}.
 	 * @since 2.0
@@ -777,7 +741,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public RedisStandaloneConfiguration getStandaloneConfiguration() {
 		return standaloneConfig;
 	}
-
 	/**
 	 * @return the {@link RedisStandaloneConfiguration}, may be {@literal null}.
 	 * @since 2.0
@@ -787,7 +750,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return RedisConfiguration.isSentinelConfiguration(configuration) ? (RedisSentinelConfiguration) configuration
 				: null;
 	}
-
 	/**
 	 * @return the {@link RedisClusterConfiguration}, may be {@literal null}.
 	 * @since 2.0
@@ -796,6 +758,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public RedisClusterConfiguration getClusterConfiguration() {
 		return RedisConfiguration.isClusterConfiguration(configuration) ? (RedisClusterConfiguration) configuration : null;
 	}
+
+
+
+
+
+
 
 	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
@@ -835,9 +803,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return RedisConfiguration.isClusterConfiguration(configuration);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getSentinelConnection()
-	 */
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
 

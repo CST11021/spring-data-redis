@@ -19,9 +19,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**
- * Basic interface serialization and deserialization of Objects to byte arrays (binary data). It is recommended that
- * implementations are designed to handle null objects/empty arrays on serialization and deserialization side. Note that
- * Redis does not accept null keys or values but can return null replies (for non existing keys).
+ * 对象的基本接口序列化和反序列化为字节数组（二进制数据）.
+ * 建议将实现设计为在序列化和反序列化方面处理空对象/空数组。
+ * 请注意，Redis不接受空键或值，但可以返回空回复（对于不存在的键）。
  *
  * @author Mark Pollack
  * @author Costin Leau
@@ -29,23 +29,27 @@ import org.springframework.util.ClassUtils;
  */
 public interface RedisSerializer<T> {
 
+
 	/**
-	 * Serialize the given object to binary data.
+	 * 将给定对象序列化为二进制数据
 	 *
 	 * @param t object to serialize. Can be {@literal null}.
 	 * @return the equivalent binary data. Can be {@literal null}.
 	 */
 	@Nullable
 	byte[] serialize(@Nullable T t) throws SerializationException;
-
 	/**
-	 * Deserialize an object from the given binary data.
+	 * 从给定的二进制数据中反序列化对象
 	 *
 	 * @param bytes object binary representation. Can be {@literal null}.
 	 * @return the equivalent object instance. Can be {@literal null}.
 	 */
 	@Nullable
 	T deserialize(@Nullable byte[] bytes) throws SerializationException;
+
+
+
+	// JDK序列化工具：JdkSerializationRedisSerializer
 
 	/**
 	 * Obtain a {@link RedisSerializer} using java serialization.<br />
@@ -57,7 +61,6 @@ public interface RedisSerializer<T> {
 	static RedisSerializer<Object> java() {
 		return java(null);
 	}
-
 	/**
 	 * Obtain a {@link RedisSerializer} using java serialization with the given {@link ClassLoader}.<br />
 	 * <strong>Note:</strong> Ensure that your domain objects are actually {@link java.io.Serializable serializable}.
@@ -70,6 +73,8 @@ public interface RedisSerializer<T> {
 		return new JdkSerializationRedisSerializer(classLoader);
 	}
 
+	// JSON序列化工具：GenericJackson2JsonRedisSerializer
+
 	/**
 	 * Obtain a {@link RedisSerializer} that can read and write JSON using
 	 * <a href="https://github.com/FasterXML/jackson-core">Jackson</a>.
@@ -80,6 +85,8 @@ public interface RedisSerializer<T> {
 	static RedisSerializer<Object> json() {
 		return new GenericJackson2JsonRedisSerializer();
 	}
+
+	// UTF_8序列化工具：
 
 	/**
 	 * Obtain a simple {@link java.lang.String} to {@literal byte[]} (and back) serializer using
@@ -92,6 +99,8 @@ public interface RedisSerializer<T> {
 		return StringRedisSerializer.UTF_8;
 	}
 
+	// 字节数组序列化工具：
+
 	/**
 	 * Obtain a {@link RedisSerializer} that passes thru {@code byte[]}.
 	 *
@@ -102,10 +111,21 @@ public interface RedisSerializer<T> {
 		return ByteArrayRedisSerializer.INSTANCE;
 	}
 
+	/**
+	 * 检查指定的类型是可以被序列化
+	 *
+	 * @param type
+	 * @return
+	 */
 	default boolean canSerialize(Class<?> type) {
 		return ClassUtils.isAssignable(getTargetType(), type);
 	}
 
+	/**
+	 * 表示该工具类型可以处理类型
+	 *
+	 * @return
+	 */
 	default Class<?> getTargetType() {
 		return Object.class;
 	}

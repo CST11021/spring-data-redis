@@ -71,9 +71,11 @@ import org.springframework.util.ObjectUtils;
  */
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
+	private final Log log = LogFactory.getLog(DefaultStringRedisConnection.class);
+
 	private static final byte[][] EMPTY_2D_BYTE_ARRAY = new byte[0][];
 
-	private final Log log = LogFactory.getLog(DefaultStringRedisConnection.class);
+
 	private final RedisConnection delegate;
 	private final RedisSerializer<String> serializer;
 	private Converter<byte[], String> bytesToString = new DeserializingConverter();
@@ -100,6 +102,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@SuppressWarnings("rawtypes") private Queue<Converter> pipelineConverters = new LinkedList<>();
 	@SuppressWarnings("rawtypes") private Queue<Converter> txConverters = new LinkedList<>();
 	private boolean deserializePipelineAndTxResults = false;
+	/** 数据Convert，例如：redis指定后一般返回1或0，表示成功或失败，通过该工具可以1或0转为boolean类型 */
 	private IdentityConverter<Object, ?> identityConverter = new IdentityConverter<>();
 
 	private class DeserializingConverter implements Converter<byte[], String> {
@@ -174,28 +177,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		this.byteGeoResultsToStringGeoResults = Converters.deserializingGeoResultsConverter(serializer);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#append(byte[], byte[])
-	 */
 	@Override
 	public Long append(byte[] key, byte[] value) {
 		return convertAndReturn(delegate.append(key, value), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#bgSave()
-	 */
 	@Override
 	public void bgSave() {
 		delegate.bgSave();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#bgReWriteAof()
-	 */
 	@Override
 	public void bgReWriteAof() {
 		delegate.bgReWriteAof();
@@ -209,91 +200,51 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		bgReWriteAof();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#bLPop(int, byte[][])
-	 */
 	@Override
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 		return convertAndReturn(delegate.bLPop(timeout, keys), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#bRPop(int, byte[][])
-	 */
 	@Override
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 		return convertAndReturn(delegate.bRPop(timeout, keys), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisListCommands#bRPopLPush(int, byte[], byte[])
-	 */
 	@Override
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
 		return convertAndReturn(delegate.bRPopLPush(timeout, srcKey, dstKey), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#close()
-	 */
 	@Override
 	public void close() throws RedisSystemException {
 		delegate.close();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#dbSize()
-	 */
 	@Override
 	public Long dbSize() {
 		return convertAndReturn(delegate.dbSize(), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#decr(byte[])
-	 */
 	@Override
 	public Long decr(byte[] key) {
 		return convertAndReturn(delegate.decr(key), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#decrBy(byte[], long)
-	 */
 	@Override
 	public Long decrBy(byte[] key, long value) {
 		return convertAndReturn(delegate.decrBy(key, value), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#del(byte[][])
-	 */
 	@Override
 	public Long del(byte[]... keys) {
 		return convertAndReturn(delegate.del(keys), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#unlink(byte[][])
-	 */
 	@Override
 	public Long unlink(byte[]... keys) {
 		return convertAndReturn(delegate.unlink(keys), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisTxCommands#discard()
-	 */
 	@Override
 	public void discard() {
 		try {
@@ -303,19 +254,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#echo(byte[])
-	 */
 	@Override
 	public byte[] echo(byte[] message) {
 		return convertAndReturn(delegate.echo(message), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisTxCommands#exec()
-	 */
 	@Override
 	@SuppressWarnings("rawtypes")
 	public List<Object> exec() {
@@ -332,163 +275,91 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[])
-	 */
 	@Override
 	public Boolean exists(byte[] key) {
 		return convertAndReturn(delegate.exists(key), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#exists(String[])
-	 */
 	@Override
 	public Long exists(String... keys) {
 		return convertAndReturn(delegate.exists(serializeMulti(keys)), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[][])
-	 */
 	@Override
 	public Long exists(byte[]... keys) {
 		return convertAndReturn(delegate.exists(keys), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#expire(byte[], long)
-	 */
 	@Override
 	public Boolean expire(byte[] key, long seconds) {
 		return convertAndReturn(delegate.expire(key, seconds), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#expireAt(byte[], long)
-	 */
 	@Override
 	public Boolean expireAt(byte[] key, long unixTime) {
 		return convertAndReturn(delegate.expireAt(key, unixTime), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushAll()
-	 */
 	@Override
 	public void flushAll() {
 		delegate.flushAll();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#flushDb()
-	 */
 	@Override
 	public void flushDb() {
 		delegate.flushDb();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#get(byte[])
-	 */
 	@Override
 	public byte[] get(byte[] key) {
 		return convertAndReturn(delegate.get(key), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#getBit(byte[], long)
-	 */
 	@Override
 	public Boolean getBit(byte[] key, long offset) {
 		return convertAndReturn(delegate.getBit(key, offset), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#getConfig(java.lang.String)
-	 */
 	@Override
 	public Properties getConfig(String pattern) {
 		return convertAndReturn(delegate.getConfig(pattern), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#getNativeConnection()
-	 */
 	@Override
 	public Object getNativeConnection() {
 		return convertAndReturn(delegate.getNativeConnection(), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#getRange(byte[], long, long)
-	 */
 	@Override
 	public byte[] getRange(byte[] key, long start, long end) {
 		return convertAndReturn(delegate.getRange(key, start, end), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisStringCommands#getSet(byte[], byte[])
-	 */
 	@Override
 	public byte[] getSet(byte[] key, byte[] value) {
 		return convertAndReturn(delegate.getSet(key, value), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#getSubscription()
-	 */
 	@Override
 	public Subscription getSubscription() {
 		return delegate.getSubscription();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hDel(byte[], byte[][])
-	 */
 	@Override
 	public Long hDel(byte[] key, byte[]... fields) {
 		return convertAndReturn(delegate.hDel(key, fields), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hExists(byte[], byte[])
-	 */
 	@Override
 	public Boolean hExists(byte[] key, byte[] field) {
 		return convertAndReturn(delegate.hExists(key, field), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hGet(byte[], byte[])
-	 */
 	@Override
 	public byte[] hGet(byte[] key, byte[] field) {
 		return convertAndReturn(delegate.hGet(key, field), identityConverter);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hGetAll(byte[])
-	 */
 	@Override
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
 		return convertAndReturn(delegate.hGetAll(key), identityConverter);

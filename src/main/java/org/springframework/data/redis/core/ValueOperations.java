@@ -26,7 +26,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Redis operations for simple (or in Redis terminology 'string') values.
+ * 用于操作redis的字符串类型的接口
  *
  * @author Costin Leau
  * @author Christoph Strobl
@@ -43,7 +43,6 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/set">Redis Documentation: SET</a>
 	 */
 	void set(K key, V value);
-
 	/**
 	 * Set the {@code value} and expiration {@code timeout} for {@code key}.
 	 *
@@ -54,7 +53,6 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
 	void set(K key, V value, long timeout, TimeUnit unit);
-
 	/**
 	 * Set the {@code value} and expiration {@code timeout} for {@code key}.
 	 *
@@ -76,6 +74,7 @@ public interface ValueOperations<K, V> {
 		}
 	}
 
+
 	/**
 	 * Set {@code key} to hold the string {@code value} if {@code key} is absent.
 	 *
@@ -86,7 +85,6 @@ public interface ValueOperations<K, V> {
 	 */
 	@Nullable
 	Boolean setIfAbsent(K key, V value);
-
 	/**
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
 	 *
@@ -100,7 +98,6 @@ public interface ValueOperations<K, V> {
 	 */
 	@Nullable
 	Boolean setIfAbsent(K key, V value, long timeout, TimeUnit unit);
-
 	/**
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is absent.
 	 *
@@ -124,6 +121,7 @@ public interface ValueOperations<K, V> {
 		return setIfAbsent(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
 	}
 
+
 	/**
 	 * Set {@code key} to hold the string {@code value} if {@code key} is present.
 	 *
@@ -136,7 +134,6 @@ public interface ValueOperations<K, V> {
 	 */
 	@Nullable
 	Boolean setIfPresent(K key, V value);
-
 	/**
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
 	 *
@@ -151,7 +148,6 @@ public interface ValueOperations<K, V> {
 	 */
 	@Nullable
 	Boolean setIfPresent(K key, V value, long timeout, TimeUnit unit);
-
 	/**
 	 * Set {@code key} to hold the string {@code value} and expiration {@code timeout} if {@code key} is present.
 	 *
@@ -175,6 +171,7 @@ public interface ValueOperations<K, V> {
 		return setIfPresent(key, value, timeout.getSeconds(), TimeUnit.SECONDS);
 	}
 
+
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
 	 *
@@ -182,7 +179,6 @@ public interface ValueOperations<K, V> {
 	 * @see <a href="https://redis.io/commands/mset">Redis Documentation: MSET</a>
 	 */
 	void multiSet(Map<? extends K, ? extends V> map);
-
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple} only if the provided key does
 	 * not exist.
@@ -224,6 +220,8 @@ public interface ValueOperations<K, V> {
 	@Nullable
 	List<V> multiGet(Collection<K> keys);
 
+
+
 	/**
 	 * Increment an integer value stored as string value under {@code key} by one.
 	 *
@@ -234,7 +232,6 @@ public interface ValueOperations<K, V> {
 	 */
 	@Nullable
 	Long increment(K key);
-
 	/**
 	 * Increment an integer value stored as string value under {@code key} by {@code delta}.
 	 *
@@ -245,7 +242,6 @@ public interface ValueOperations<K, V> {
 	 */
 	@Nullable
 	Long increment(K key, long delta);
-
 	/**
 	 * Increment a floating point number value stored as string value under {@code key} by {@code delta}.
 	 *
@@ -267,7 +263,6 @@ public interface ValueOperations<K, V> {
 	 */
 	@Nullable
 	Long decrement(K key);
-
 	/**
 	 * Decrement an integer value stored as string value under {@code key} by {@code delta}.
 	 *
@@ -279,6 +274,7 @@ public interface ValueOperations<K, V> {
 	 */
 	@Nullable
 	Long decrement(K key, long delta);
+
 
 	/**
 	 * Append a {@code value} to {@code key}.

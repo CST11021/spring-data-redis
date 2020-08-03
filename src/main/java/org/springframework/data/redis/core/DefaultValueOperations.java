@@ -43,10 +43,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		super(template);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#get(java.lang.Object)
-	 */
 	@Override
 	public V get(Object key) {
 
@@ -59,10 +55,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#getAndSet(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public V getAndSet(K key, V newValue) {
 
@@ -76,10 +68,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#increment(java.lang.Object)
-	 */
 	@Override
 	public Long increment(K key) {
 
@@ -87,10 +75,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.incr(rawKey), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#increment(java.lang.Object, long)
-	 */
 	@Override
 	public Long increment(K key, long delta) {
 
@@ -98,10 +82,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.incrBy(rawKey, delta), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#increment(java.lang.Object, double)
-	 */
 	@Override
 	public Double increment(K key, double delta) {
 
@@ -109,10 +89,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.incrBy(rawKey, delta), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#decrement(java.lang.Object)
-	 */
 	@Override
 	public Long decrement(K key) {
 
@@ -120,10 +96,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.decr(rawKey), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#increment(java.lang.Object, long)
-	 */
 	@Override
 	public Long decrement(K key, long delta) {
 
@@ -131,10 +103,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.decrBy(rawKey, delta), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#append(java.lang.Object, java.lang.String)
-	 */
 	@Override
 	public Integer append(K key, String value) {
 
@@ -147,10 +115,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#get(java.lang.Object, long, long)
-	 */
 	@Override
 	public String get(K key, long start, long end) {
 		byte[] rawKey = rawKey(key);
@@ -159,10 +123,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return deserializeString(rawReturn);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#multiGet(java.util.Collection)
-	 */
 	@Override
 	public List<V> multiGet(Collection<K> keys) {
 
@@ -182,10 +142,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return deserializeValues(rawValues);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#multiSet(java.util.Map)
-	 */
 	@Override
 	public void multiSet(Map<? extends K, ? extends V> m) {
 
@@ -205,10 +161,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#multiSetIfAbsent(java.util.Map)
-	 */
 	@Override
 	public Boolean multiSetIfAbsent(Map<? extends K, ? extends V> m) {
 
@@ -225,16 +177,19 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.mSetNX(rawKeys), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#set(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public void set(K key, V value) {
 
 		byte[] rawValue = rawValue(value);
 		execute(new ValueDeserializingRedisCallback(key) {
 
+			/**
+			 * 调用RedisConnection实例设置value
+			 *
+			 * @param rawKey
+			 * @param connection
+			 * @return
+			 */
 			@Override
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				connection.set(rawKey, rawValue);
@@ -243,10 +198,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#set(java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public void set(K key, V value, long timeout, TimeUnit unit) {
 
@@ -284,10 +235,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#setIfAbsent(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Boolean setIfAbsent(K key, V value) {
 
@@ -296,10 +243,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.setNX(rawKey, rawValue), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#setIfAbsent(java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public Boolean setIfAbsent(K key, V value, long timeout, TimeUnit unit) {
 
@@ -310,10 +253,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifAbsent()), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#setIfPresent(java.lang.Object, java.lang.Object)
-	 */
 	@Nullable
 	@Override
 	public Boolean setIfPresent(K key, V value) {
@@ -324,10 +263,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.set(rawKey, rawValue, Expiration.persistent(), SetOption.ifPresent()), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#setIfPresent(java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
-	 */
 	@Nullable
 	@Override
 	public Boolean setIfPresent(K key, V value, long timeout, TimeUnit unit) {
@@ -339,10 +274,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.set(rawKey, rawValue, expiration, SetOption.ifPresent()), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#set(java.lang.Object, java.lang.Object, long)
-	 */
 	@Override
 	public void set(K key, V value, long offset) {
 
@@ -355,10 +286,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#size(java.lang.Object)
-	 */
 	@Override
 	public Long size(K key) {
 
@@ -366,10 +293,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.strLen(rawKey), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#setBit(java.lang.Object, long, boolean)
-	 */
 	@Override
 	public Boolean setBit(K key, long offset, boolean value) {
 
@@ -377,10 +300,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.setBit(rawKey, offset, value), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#getBit(java.lang.Object, long)
-	 */
 	@Override
 	public Boolean getBit(K key, long offset) {
 
@@ -388,10 +307,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(connection -> connection.getBit(rawKey, offset), true);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ValueOperations#bitfield(Object, RedisStringCommands.BitfieldCommand)
-	 */
 	@Override
 	public List<Long> bitField(K key, final BitFieldSubCommands subCommands) {
 

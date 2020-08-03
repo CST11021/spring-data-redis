@@ -20,9 +20,9 @@ import java.util.List;
 import org.springframework.dao.DataAccessException;
 
 /**
- * A connection to a Redis server. Acts as an common abstraction across various Redis client libraries (or drivers).
- * Additionally performs exception translation between the underlying Redis client library and Spring DAO exceptions.
- * The methods follow as much as possible the Redis names and conventions.
+ * 与Redis服务器的连接. 充当各种Redis客户端库（或驱动程序）的通用抽象.
+ * 另外在基础Redis客户端库和Spring DAO异常之间执行异常转换.
+ * 这些方法尽可能遵循Redis名称和约定.
  *
  * @author Costin Leau
  * @author Christoph Strobl
@@ -30,6 +30,8 @@ import org.springframework.dao.DataAccessException;
  * @author James Howe
  */
 public interface RedisConnection extends RedisCommands, AutoCloseable {
+
+	// 返回各种类型的命令接口
 
 	/**
 	 * Get {@link RedisGeoCommands}.
@@ -40,7 +42,6 @@ public interface RedisConnection extends RedisCommands, AutoCloseable {
 	default RedisGeoCommands geoCommands() {
 		return this;
 	}
-
 	/**
 	 * Get {@link RedisHashCommands}.
 	 *
@@ -50,7 +51,6 @@ public interface RedisConnection extends RedisCommands, AutoCloseable {
 	default RedisHashCommands hashCommands() {
 		return this;
 	}
-
 	/**
 	 * Get {@link RedisHyperLogLogCommands}.
 	 *
@@ -60,7 +60,6 @@ public interface RedisConnection extends RedisCommands, AutoCloseable {
 	default RedisHyperLogLogCommands hyperLogLogCommands() {
 		return this;
 	}
-
 	/**
 	 * Get {@link RedisKeyCommands}.
 	 *
@@ -70,7 +69,6 @@ public interface RedisConnection extends RedisCommands, AutoCloseable {
 	default RedisKeyCommands keyCommands() {
 		return this;
 	}
-
 	/**
 	 * Get {@link RedisListCommands}.
 	 *
@@ -80,7 +78,6 @@ public interface RedisConnection extends RedisCommands, AutoCloseable {
 	default RedisListCommands listCommands() {
 		return this;
 	}
-
 	/**
 	 * Get {@link RedisSetCommands}.
 	 *
@@ -90,7 +87,6 @@ public interface RedisConnection extends RedisCommands, AutoCloseable {
 	default RedisSetCommands setCommands() {
 		return this;
 	}
-
 	/**
 	 * Get {@link RedisScriptingCommands}.
 	 *
@@ -100,7 +96,6 @@ public interface RedisConnection extends RedisCommands, AutoCloseable {
 	default RedisScriptingCommands scriptingCommands() {
 		return this;
 	}
-
 	/**
 	 * Get {@link RedisServerCommands}.
 	 *
@@ -110,7 +105,6 @@ public interface RedisConnection extends RedisCommands, AutoCloseable {
 	default RedisServerCommands serverCommands() {
 		return this;
 	}
-
 	/**
 	 * Get {@link RedisStreamCommands}.
 	 *
@@ -120,7 +114,6 @@ public interface RedisConnection extends RedisCommands, AutoCloseable {
 	default RedisStreamCommands streamCommands() {
 		return this;
 	}
-
 	/**
 	 * Get {@link RedisStringCommands}.
 	 *
@@ -130,7 +123,6 @@ public interface RedisConnection extends RedisCommands, AutoCloseable {
 	default RedisStringCommands stringCommands() {
 		return this;
 	}
-
 	/**
 	 * Get {@link RedisZSetCommands}.
 	 *
@@ -140,6 +132,7 @@ public interface RedisConnection extends RedisCommands, AutoCloseable {
 	default RedisZSetCommands zSetCommands() {
 		return this;
 	}
+
 
 	/**
 	 * Closes (or quits) the connection.

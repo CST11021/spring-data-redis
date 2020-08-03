@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.ser.SerializerFactory;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 /**
- * Generic Jackson 2-based {@link RedisSerializer} that maps {@link Object objects} to JSON using dynamic typing.
+ * 基于通用Jackson的{@link RedisSerializer}，使用动态类型将{@link Object objects}映射到JSON。
  *
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -51,7 +51,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	public GenericJackson2JsonRedisSerializer() {
 		this((String) null);
 	}
-
 	/**
 	 * Creates {@link GenericJackson2JsonRedisSerializer} and configures {@link ObjectMapper} for default typing using the
 	 * given {@literal name}. In case of an {@literal empty} or {@literal null} String the default
@@ -73,7 +72,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 			mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.PROPERTY);
 		}
 	}
-
 	/**
 	 * Setting a custom-configured {@link ObjectMapper} is one way to take further control of the JSON serialization
 	 * process. For example, an extended {@link SerializerFactory} can be configured that provides custom serializers for
@@ -86,6 +84,8 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		Assert.notNull(mapper, "ObjectMapper must not be null!");
 		this.mapper = mapper;
 	}
+
+
 
 	/**
 	 * Register {@link NullValueSerializer} in the given {@link ObjectMapper} with an optional
@@ -103,10 +103,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		objectMapper.registerModule(new SimpleModule().addSerializer(new NullValueSerializer(classPropertyTypeName)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializer#serialize(java.lang.Object)
-	 */
 	@Override
 	public byte[] serialize(@Nullable Object source) throws SerializationException {
 
@@ -121,10 +117,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.RedisSerializer#deserialize(byte[])
-	 */
 	@Override
 	public Object deserialize(@Nullable byte[] source) throws SerializationException {
 		return deserialize(source, Object.class);
@@ -174,13 +166,8 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 			this.classIdentifier = StringUtils.hasText(classIdentifier) ? classIdentifier : "@class";
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see com.fasterxml.jackson.databind.ser.std.StdSerializer#serialize(java.lang.Object, com.fasterxml.jackson.core.JsonGenerator, com.fasterxml.jackson.databind.SerializerProvider)
-		 */
 		@Override
-		public void serialize(NullValue value, JsonGenerator jgen, SerializerProvider provider)
-				throws IOException {
+		public void serialize(NullValue value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
 
 			jgen.writeStartObject();
 			jgen.writeStringField(classIdentifier, NullValue.class.getName());

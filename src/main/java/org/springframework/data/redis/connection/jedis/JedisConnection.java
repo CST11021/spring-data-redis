@@ -65,8 +65,7 @@ import org.springframework.util.StringUtils;
  */
 public class JedisConnection extends AbstractRedisConnection {
 
-	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
-			JedisConverters.exceptionConverter());
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(JedisConverters.exceptionConverter());
 
 	private final Jedis jedis;
 	private @Nullable Transaction transaction;
@@ -136,116 +135,67 @@ public class JedisConnection extends AbstractRedisConnection {
 		return exception != null ? exception : new RedisSystemException(ex.getMessage(), ex);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#keyCommands()
-	 */
 	@Override
 	public RedisKeyCommands keyCommands() {
 		return new JedisKeyCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#streamCommands()
-	 */
 	@Override
 	public RedisStreamCommands streamCommands() {
 		throw new UnsupportedOperationException("Streams not supported using Jedis!");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#stringCommands()
-	 */
 	@Override
 	public RedisStringCommands stringCommands() {
 		return new JedisStringCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#listCommands()
-	 */
 	@Override
 	public RedisListCommands listCommands() {
 		return new JedisListCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#setCommands()
-	 */
 	@Override
 	public RedisSetCommands setCommands() {
 		return new JedisSetCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#zSetCommands()
-	 */
 	@Override
 	public RedisZSetCommands zSetCommands() {
 		return new JedisZSetCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#hashCommands()
-	 */
 	@Override
 	public RedisHashCommands hashCommands() {
 		return new JedisHashCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#geoCommands()
-	 */
 	@Override
 	public RedisGeoCommands geoCommands() {
 		return new JedisGeoCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#scriptingCommands()
-	 */
 	@Override
 	public RedisScriptingCommands scriptingCommands() {
 		return new JedisScriptingCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#serverCommands()
-	 */
 	@Override
 	public RedisServerCommands serverCommands() {
 		return new JedisServerCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#hyperLogLogCommands()
-	 */
 	@Override
 	public RedisHyperLogLogCommands hyperLogLogCommands() {
 		return new JedisHyperLogLogCommands(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisCommands#execute(java.lang.String, byte[][])
-	 */
 	@Override
 	public Object execute(String command, byte[]... args) {
 		return execute(command, args, Connection::getOne, JedisClientUtils::getResponse);
 	}
 
-	<T> T execute(String command, byte[][] args, Function<Client, T> resultMapper,
-			Function<Object, Response<?>> pipelineResponseMapper) {
+	<T> T execute(String command, byte[][] args, Function<Client, T> resultMapper, Function<Object, Response<?>> pipelineResponseMapper) {
 
 		Assert.hasText(command, "A valid command needs to be specified!");
 		Assert.notNull(args, "Arguments must not be null!");
@@ -271,10 +221,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.AbstractRedisConnection#close()
-	 */
 	@Override
 	public void close() throws DataAccessException {
 
@@ -301,19 +247,11 @@ public class JedisConnection extends AbstractRedisConnection {
 			throw convertJedisAccessException(exc);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#getNativeConnection()
-	 */
 	@Override
 	public Jedis getNativeConnection() {
 		return jedis;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#isClosed()
-	 */
 	@Override
 	public boolean isClosed() {
 		try {
@@ -323,28 +261,16 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#isQueueing()
-	 */
 	@Override
 	public boolean isQueueing() {
 		return JedisClientUtils.isInMulti(jedis);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#isPipelined()
-	 */
 	@Override
 	public boolean isPipelined() {
 		return (pipeline != null);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#openPipeline()
-	 */
 	@Override
 	public void openPipeline() {
 		if (pipeline == null) {
@@ -352,10 +278,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnection#closePipeline()
-	 */
 	@Override
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
@@ -412,10 +334,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		txResults.add(result);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#echo(byte[])
-	 */
 	@Override
 	public byte[] echo(byte[] message) {
 		try {
@@ -433,10 +351,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#ping()
-	 */
 	@Override
 	public String ping() {
 		try {
@@ -454,10 +368,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisTxCommands#discard()
-	 */
 	@Override
 	public void discard() {
 		try {
@@ -474,10 +384,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisTxCommands#exec()
-	 */
 	@Override
 	public List<Object> exec() {
 		try {
@@ -560,10 +466,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		return JedisResultBuilder.forResponse(response).buildStatusResult();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisTxCommands#multi()
-	 */
 	@Override
 	public void multi() {
 		if (isQueueing()) {
@@ -580,10 +482,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#select(int)
-	 */
 	@Override
 	public void select(int dbIndex) {
 		try {
@@ -601,10 +499,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisTxCommands#unwatch()
-	 */
 	@Override
 	public void unwatch() {
 		try {
@@ -614,10 +508,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisTxCommands#watch(byte[][])
-	 */
 	@Override
 	public void watch(byte[]... keys) {
 		if (isQueueing()) {
@@ -640,10 +530,6 @@ public class JedisConnection extends AbstractRedisConnection {
 	// Pub/Sub functionality
 	//
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#publish(byte[], byte[])
-	 */
 	@Override
 	public Long publish(byte[] channel, byte[] message) {
 		try {
@@ -661,28 +547,16 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#getSubscription()
-	 */
 	@Override
 	public Subscription getSubscription() {
 		return subscription;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#isSubscribed()
-	 */
 	@Override
 	public boolean isSubscribed() {
 		return (subscription != null && subscription.isAlive());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#pSubscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
-	 */
 	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
 		if (isSubscribed()) {
@@ -707,10 +581,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisPubSubCommands#subscribe(org.springframework.data.redis.connection.MessageListener, byte[][])
-	 */
 	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
 		if (isSubscribed()) {
@@ -746,10 +616,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.AbstractRedisConnection#isActive(org.springframework.data.redis.connection.RedisNode)
-	 */
 	@Override
 	protected boolean isActive(RedisNode node) {
 
@@ -768,10 +634,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.AbstractRedisConnection#getSentinelConnection(org.springframework.data.redis.connection.RedisNode)
-	 */
 	@Override
 	protected JedisSentinelConnection getSentinelConnection(RedisNode sentinel) {
 		return new JedisSentinelConnection(getJedis(sentinel));

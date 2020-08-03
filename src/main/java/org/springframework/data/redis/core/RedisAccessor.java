@@ -47,6 +47,14 @@ public class RedisAccessor implements InitializingBean {
 	public RedisConnectionFactory getConnectionFactory() {
 		return connectionFactory;
 	}
+	/**
+	 * Sets the connection factory.
+	 *
+	 * @param connectionFactory The connectionFactory to set.
+	 */
+	public void setConnectionFactory(RedisConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
+	}
 
 	/**
 	 * Returns the required {@link RedisConnectionFactory} or throws {@link IllegalStateException} if the connection
@@ -67,12 +75,5 @@ public class RedisAccessor implements InitializingBean {
 		return connectionFactory;
 	}
 
-	/**
-	 * Sets the connection factory.
-	 *
-	 * @param connectionFactory The connectionFactory to set.
-	 */
-	public void setConnectionFactory(RedisConnectionFactory connectionFactory) {
-		this.connectionFactory = connectionFactory;
-	}
+
 }

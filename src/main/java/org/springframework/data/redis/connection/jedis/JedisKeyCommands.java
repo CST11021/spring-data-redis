@@ -48,10 +48,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 	private final @NonNull JedisConnection connection;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[])
-	 */
 	@Override
 	public Boolean exists(byte[] key) {
 
@@ -62,20 +58,18 @@ class JedisKeyCommands implements RedisKeyCommands {
 				pipeline(connection.newJedisResult(connection.getRequiredPipeline().exists(key)));
 				return null;
 			}
+
 			if (isQueueing()) {
 				transaction(connection.newJedisResult(connection.getRequiredTransaction().exists(key)));
 				return null;
 			}
+
 			return connection.getJedis().exists(key);
 		} catch (Exception ex) {
 			throw connection.convertJedisAccessException(ex);
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#exists(byte[][])
-	 */
 	@Nullable
 	@Override
 	public Long exists(byte[]... keys) {
@@ -98,10 +92,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#del(byte[][])
-	 */
 	@Override
 	public Long del(byte[]... keys) {
 
@@ -123,10 +113,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#unlink(byte[][])
-	 */
 	@Nullable
 	@Override
 	public Long unlink(byte[]... keys) {
@@ -136,10 +122,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		return Long.class.cast(connection.execute("UNLINK", keys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#type(byte[])
-	 */
 	@Override
 	public DataType type(byte[] key) {
 
@@ -162,10 +144,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#touch(byte[][])
-	 */
 	@Nullable
 	@Override
 	public Long touch(byte[]... keys) {
@@ -175,10 +153,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		return Long.class.cast(connection.execute("TOUCH", keys));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#keys(byte[])
-	 */
 	@Override
 	public Set<byte[]> keys(byte[] pattern) {
 
@@ -199,10 +173,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#scan(org.springframework.data.redis.core.ScanOptions)
-	 */
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
 		return scan(0, options != null ? options : ScanOptions.NONE);
@@ -238,10 +208,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}.open();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#randomKey()
-	 */
 	@Override
 	public byte[] randomKey() {
 
@@ -260,10 +226,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#rename(byte[], byte[])
-	 */
 	@Override
 	public void rename(byte[] sourceKey, byte[] targetKey) {
 
@@ -285,10 +247,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#renameNX(byte[], byte[])
-	 */
 	@Override
 	public Boolean renameNX(byte[] sourceKey, byte[] targetKey) {
 
@@ -312,10 +270,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#expire(byte[], long)
-	 */
 	@Override
 	public Boolean expire(byte[] key, long seconds) {
 
@@ -342,10 +296,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pExpire(byte[], long)
-	 */
 	@Override
 	public Boolean pExpire(byte[] key, long millis) {
 
@@ -368,10 +318,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#expireAt(byte[], long)
-	 */
 	@Override
 	public Boolean expireAt(byte[] key, long unixTime) {
 
@@ -394,10 +340,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pExpireAt(byte[], long)
-	 */
 	@Override
 	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
 
@@ -420,10 +362,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#persist(byte[])
-	 */
 	@Override
 	public Boolean persist(byte[] key) {
 
@@ -446,10 +384,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#move(byte[], int)
-	 */
 	@Override
 	public Boolean move(byte[] key, int dbIndex) {
 
@@ -472,10 +406,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[])
-	 */
 	@Override
 	public Long ttl(byte[] key) {
 
@@ -497,10 +427,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[], java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public Long ttl(byte[] key, TimeUnit timeUnit) {
 
@@ -524,10 +450,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[])
-	 */
 	@Override
 	public Long pTtl(byte[] key) {
 
@@ -549,10 +471,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[], java.util.concurrent.TimeUnit)
-	 */
 	@Override
 	public Long pTtl(byte[] key, TimeUnit timeUnit) {
 
@@ -576,10 +494,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#sort(byte[], org.springframework.data.redis.connection.SortParameters)
-	 */
 	@Override
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 
@@ -612,10 +526,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#sort(byte[], org.springframework.data.redis.connection.SortParameters, byte[])
-	 */
 	@Override
 	public Long sort(byte[] key, @Nullable SortParameters params, byte[] storeKey) {
 
@@ -649,10 +559,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#dump(byte[])
-	 */
 	@Override
 	public byte[] dump(byte[] key) {
 
@@ -673,10 +579,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#restore(byte[], long, byte[], boolean)
-	 */
 	@Override
 	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue, boolean replace) {
 
@@ -711,10 +613,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#encoding(byte[])
-	 */
 	@Nullable
 	@Override
 	public ValueEncoding encodingOf(byte[] key) {
@@ -738,10 +636,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#idletime(byte[])
-	 */
 	@Nullable
 	@Override
 	public Duration idletime(byte[] key) {
@@ -766,10 +660,6 @@ class JedisKeyCommands implements RedisKeyCommands {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisKeyCommands#refcount(byte[])
-	 */
 	@Nullable
 	@Override
 	public Long refcount(byte[] key) {
